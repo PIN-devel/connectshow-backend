@@ -9,6 +9,10 @@ from rest_framework.permissions import IsAuthenticated
 from .serializers import UserSerializer
 
 
+
+def user_valid(request):
+    pass
+
 # Create your views here.
 @api_view(['GET', 'DELETE', 'PUT'])
 @permission_classes([IsAuthenticated])
