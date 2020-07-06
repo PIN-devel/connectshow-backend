@@ -178,3 +178,5 @@ MEDIA_URL = '/media/'
 # ckeditor
 CKEDITOR_UPLOAD_PATH = "uploads/"
 CKEDITOR_IMAGE_BACKEND = "pillow"
+
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
