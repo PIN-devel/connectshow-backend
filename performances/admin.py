@@ -1,3 +1,7 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import Performance, Review, Category
+
+admin.site.register(Category)
+admin.site.register(Performance)
+admin.site.register(Review)

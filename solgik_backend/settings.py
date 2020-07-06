@@ -62,6 +62,11 @@ INSTALLED_APPS = [
 
     # CORS
     'corsheaders',
+
+    # ckeditor
+    'ckeditor_uploader',
+    'ckeditor',
+
 ]
 
 MIDDLEWARE = [
@@ -158,6 +163,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ]
 }
+OLD_PASSWORD_FIELD_ENABLED = True
+LOGOUT_ON_PASSWORD_CHANGE = False
+
 
 # CORS Allow
 CORS_ORIGIN_ALLOW_ALL = True
@@ -166,3 +174,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
+# ckeditor
+CKEDITOR_UPLOAD_PATH = "uploads/"
+CKEDITOR_IMAGE_BACKEND = "pillow"
