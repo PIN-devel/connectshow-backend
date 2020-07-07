@@ -42,11 +42,10 @@ def detail_or_delete_or_update(request, user_id):
     # 수정
     else:
         if request.user == user:
-            user.email = request.data.get('email')
-            user.profile_image = request.data.get('profile_image')
-            user.save()
-            serializer = UserSerializer(user)
-            return Response({"status": "OK", "data": serializer.data})
+            serializer = UserSerializer(user,data=request.data,partial=True)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response({"status": "OK", "data": serializer.data})
         else:
             return Response({"status": "FAIL", "error_msg": "수정 권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
 
@@ -75,39 +74,41 @@ def club_list_or_create(request):
         serializer = ClubSerializer(clubs.page(p),many=True)
         return Response({"status": "OK", "data": serializer.data})
     
-    elif request.method=='POST':
-        club = Club.objects.create(master=request.user)
-        ClubMember.objects.create(user_id=user.id,club_id=club.id)
+    else:# POST
         serializer = ClubSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save(master=request.user)
+            club=serializer.save(master=request.user)
+            ClubMember.objects.create(user_id=request.user.id,club_id=club.id,is_member=True)
             return Response({"status":"OK","data": serializer.data})
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
-@permission_classes([IsAuthenticated])
 def club_detail_or_delete_or_update(request,club_id):
     club = get_object_or_404(Club, id=club_id)
     if request.method=='GET':
+        members=ClubMember.objects.filter(club_id=club.id,is_member=True)
+        users_serializer=[]
+        for member in members:
+            users_serializer.append(UserIdentifySerializer(member.user).data)
         serializer = ClubSerializer(club)
-        return Response({"status": "OK", "data": serializer.data})
-    elif request.method=='PUT':
-        if request.user==club.master:
-            club.club_name = request.data.get('club_name')
-            club.club_image = request.data.get('club_image')
-            club.description = request.data.get('description')
-            club.save()
-            serializer = ClubSerializer(club)
-            return Response({"status":"OK","data": serializer.data})
-        else:
-            return Response({"status":"FAIL","user_error":"관리자만 수정할 수 있습니다."},status=status.HTTP_403_FORBIDDEN)
-    elif request.method=='DELETE':
-        if request.user==club.master:
-            club.delete()
-            return Response({"status":"OK"})
-        else:
-            return Response({"status":"FAIL","user_error":"관리자만 삭제할 수 있습니다."},status=status.HTTP_403_FORBIDDEN)
-
+        return Response({"status": "OK", "data":{'club_members':users_serializer,'club_detail':serializer.data}})
+    if request.user.is_authenticated:
+        if request.method=='PUT':
+            if request.user==club.master:
+                serializer = ClubSerializer(club,data=request.data,partial=True)
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    return Response({"status":"OK","data": serializer.data})
+            else:
+                return Response({"status":"FAIL","error_msg":"관리자만 수정할 수 있습니다."},status=status.HTTP_403_FORBIDDEN)
+        else: # DELETE
+            if request.user==club.master:
+                club.delete()
+                return Response({"status":"OK"})
+            else:
+                return Response({"status":"FAIL","error_msg":"관리자만 삭제할 수 있습니다."},status=status.HTTP_403_FORBIDDEN)
+    else:
+        return Response({"status":"FAIL","error_msg":"로그인이 필요한 서비스 입니다."},status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST', 'DELETE'])
 @permission_classes([IsAuthenticated])
@@ -116,7 +117,7 @@ def club_subscribe_or_cancle_or_withdraw(request,club_id):
     user = request.user
     master = club.master
     if user==master:
-        return Response({"status":"FAIL","user_error":"관리자는 접근 할 수 없습니다."},status=status.HTTP_403_FORBIDDEN)
+        return Response({"status":"FAIL","error_msg":"관리자는 접근 할 수 없습니다."},status=status.HTTP_403_FORBIDDEN)
     else:
         if request.method=='POST':
             if ClubMember.objects.filter(club_id=club.id,user_id=user.id).exists():
@@ -125,13 +126,13 @@ def club_subscribe_or_cancle_or_withdraw(request,club_id):
                 return Response({"status":"OK"})
             else:
                 clubmember = ClubMember.objects.create(club_id=club.id,user_id=user.id)
-                context = {
+                data = {
                     "club": club.id,
                     "user": user.id,
                     "is_member":clubmember.is_member
                 }
-                return Response({"status":"OK","context":context})
-        elif request.method=='DELETE':
+                return Response({"status":"OK","data":data})
+        else: # DELETE
             clubmember = ClubMember.objects.filter(club_id=club.id,user_id=user.id)
             clubmember.delete()
             return Response({"status":"OK"})       
@@ -150,21 +151,24 @@ def club_accept_or_refuse_or_expel(request,club_id,user_id):
                 subscribe_user =  ClubMember.objects.get(club_id=club.id,user_id=user.id)
                 subscribe_user.is_member = True
                 subscribe_user.save()
-                context = {
+                data = {
                     "club": club.id,
                     "user": user.id,
                     "is_member":subscribe_user.is_member
                 }                
-                return Response({"status":"OK","context":context})
+                return Response({"status":"OK","data":data})
+            else:
+                return Response({"status":"FAIL","error_msg":"잘못된 요청입니다."},status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({"status":"FAIL","user_error":"관리자만 권한이 있습니다."},status=status.HTTP_403_FORBIDDEN)
-    elif request.method=='DELETE':
+            return Response({"status":"FAIL","error_msg":"관리자만 권한이 있습니다."},status=status.HTTP_403_FORBIDDEN)
+    
+    else: # DELETE
         if request.user==master:
             clubmember = ClubMember.objects.filter(club_id=club.id,user_id=user.id)
             clubmember.delete()
             return Response({"status":"OK"})       
         else:
-            return Response({"status":"FAIL","user_error":"관리자만 삭제할 수 있습니다."},status=status.HTTP_403_FORBIDDEN)
+            return Response({"status":"FAIL","error_msg":"관리자만 삭제할 수 있습니다."},status=status.HTTP_403_FORBIDDEN)
 
 
 @api_view(['POST'])
@@ -173,12 +177,12 @@ def club_follow(request,club_id):
     club = get_object_or_404(Club, id=club_id)
     if club.follow_users.filter(pk=request.user.id).exists():
         club.follow_users.remove(request.user)
-        return Response({"status":"OK"})
+        follow = False
     else:
         club.follow_users.add(request.user)
-        club.save()
-        context = {
-            "club": club.id,
-            "user": request.user.id
-        }
-        return Response({"status":"OK","context":context})
+        follow = True
+    data = {
+        "follow":follow,
+        "count":club.follow_users.count()
+    }
+    return Response({"status":"OK","data":data})

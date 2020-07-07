@@ -20,7 +20,7 @@ class PerformanceListSerializer(serializers.ModelSerializer):
 class ClubSerializer(serializers.ModelSerializer):
     class Meta:
         model = Club
-        fields = ('id','club_name')
+        fields = ('id','club_name','club_image')
 
 class UserSerializer(serializers.ModelSerializer):
     like_categories = CategorySerializer(many=True)
@@ -28,7 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
     clubs = ClubSerializer(many=True)
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'profile_image','clubs')
+        fields = ('id', 'username', 'email', 'profile_image','clubs','like_categories','like_performances')
         read_only_fields = ('id', 'username')
 
 class UserIdentifySerializer(serializers.ModelSerializer):
@@ -38,8 +38,8 @@ class UserIdentifySerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'username')
 
 class ClubSerializer(serializers.ModelSerializer):
-    master = UserSerializer(required=False)
-    members = UserIdentifySerializer(many=True)
+    master = UserIdentifySerializer(required=False)
+    members = UserIdentifySerializer(required=False,many=True)
     class Meta:
         model = Club
         fields = '__all__'

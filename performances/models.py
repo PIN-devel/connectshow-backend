@@ -69,5 +69,5 @@ class Review(models.Model):
 class Cast(models.Model):
     performance = models.ForeignKey(Performance,on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
-    is_user = models.BooleanField()
+    is_user = models.BooleanField(default=False)
     name = models.CharField(max_length=50, blank=True)
