@@ -6,12 +6,16 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-from .serializers import UserSerializer
+from .serializers import UserSerializer,UserIdentifySerializer
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def identify(request):
+    serializer = UserIdentifySerializer(request.user)
+    return Response({"status": "OK", "data": serializer.data})
 
-def user_valid(request):
-    pass
+    
 
 # Create your views here.
 @api_view(['GET', 'DELETE', 'PUT'])
@@ -36,8 +40,6 @@ def detail_or_delete_or_update(request, user_id):
     # 수정
     else:
         if request.user == user:
-            print("이미지",request.data.get('profile_image'))
-
             user.email = request.data.get('email')
             user.profile_image = request.data.get('profile_image')
             user.save()
