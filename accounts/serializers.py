@@ -1,9 +1,21 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Club 
-from performances.serializers import CategorySerializer, PerformanceListSerializer
+from .models import Club
+from performances.models import Performance, Category 
 
 User = get_user_model()
+
+#------------------------------------------------------------------
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = '__all__'
+
+class PerformanceListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Performance
+        fields = ('id', 'title', 'poster_image')
+#------------------------------------------------------------------
 
 class ClubSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,7 +28,7 @@ class UserSerializer(serializers.ModelSerializer):
     clubs = ClubSerializer(many=True)
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'profile_image','clubs','like_categories','like_performances')
+        fields = ('id', 'username', 'email', 'profile_image','clubs')
         read_only_fields = ('id', 'username')
 
 class UserIdentifySerializer(serializers.ModelSerializer):
@@ -25,7 +37,6 @@ class UserIdentifySerializer(serializers.ModelSerializer):
         fields = ('id', 'username')
         read_only_fields = ('id', 'username')
 
-# ------------------------------------------------------------------
 class ClubSerializer(serializers.ModelSerializer):
     master = UserSerializer(required=False)
     members = UserIdentifySerializer(many=True)
