@@ -50,15 +50,9 @@ def detail_or_update_or_delete(request, article_id):
 
     else:
       if request.user == article.user:
-        club_id = request.get.GET('club_id')
-        club = Club.objects.filter(id=club_id)
-        serializer = ArticleSerializer(article, data=request.data)
+        serializer = ArticleSerializer(article, data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
-          serializer.save(user=request.user, club=club)
-        # article.title = request.data.get('title')
-        # article.content = request.data.get('content')
-        # article.save()
-        # serializer = ArticleSerializer(article)
+          serializer.save()
         return Response({"status":"OK", "data":serializer.data})
       else:
         return Response({"status":"FAIL","error_msg":"클럽 마스터만 수정할 수 있습니다."},status=status.HTTP_403_FORBIDDEN)
@@ -84,8 +78,7 @@ def comment_list_or_create(request,article_id):
 
 @api_view(['DELETE','PUT'])
 @permission_classes([IsAuthenticated])
-def comment_update_or_delete(request, article_id, comment_id):
-  article = get_object_or_404(Article, id=article_id)
+def comment_update_or_delete(request, comment_id):
   comment = get_object_or_404(Comment, id=comment_id)
   if request.method == 'DELETE':
     if request.user == comment.user:
@@ -95,12 +88,9 @@ def comment_update_or_delete(request, article_id, comment_id):
       return Response({"status":"FAIL", "error_msg":"본인 댓글만 삭제할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
   else:
     if request.user == comment.user:
-      serializer = CommentSerializer(comment, data=request.data)
+      serializer = CommentSerializer(comment, data=request.data, partial=True)
       if serializer.is_valid(raise_exception=True):
-        serializer.save(user=request.user, article=article)
-      # comment.content = request.data.get('content')
-      # comment.save()
-      # serializer = CommentSerializer(comment)
+        serializer.save()
       return Response({"status":"OK", "data":serializer.data})
     else:
       return Response({"status":"FAIL","error_msg":"본인 댓글만 수정할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
