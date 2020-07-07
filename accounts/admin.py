@@ -6,3 +6,4 @@ admin.site.register(get_user_model())
 admin.site.register(Club)
 admin.site.register(ClubMember)
 
+
