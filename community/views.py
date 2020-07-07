@@ -15,6 +15,7 @@ PerPage = 10
 # Articles
 @api_view(['GET','POST'])
 def list_or_create(request):
+  ArticlePerPage = 10
   if request.method == 'GET':
     p = request.GET.get('page', 1)
     articles = Paginator(Article.objects.order_by('-id'), PerPage)
