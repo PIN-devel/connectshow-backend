@@ -9,7 +9,7 @@ from django.conf import settings
 
 
 class Club(models.Model):
-    master = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
+    master = models.ForeignKey(settings.AUTH_USER_MODEL,on_delete=models.CASCADE,related_name='my_club')
     club_name = models.CharField(max_length=50)
     club_image = models.ImageField(default='/images/default_user.jpeg')
     club_image_thumbnail = ImageSpecField(source='club_image',

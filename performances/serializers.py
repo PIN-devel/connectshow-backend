@@ -3,16 +3,13 @@ from rest_framework import serializers
 from .models import Performance, Category, Review
 from accounts.serializers import UserSerializer
 from accounts.models import Club
+from accounts.serializers import ClubSerializer
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = '__all__'
 
-class ClubSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Club
-        fields = '__all__'
 
 class PerformanceListSerializer(serializers.ModelSerializer):
     class Meta:

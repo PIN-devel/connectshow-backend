@@ -24,3 +24,10 @@ class UserIdentifySerializer(serializers.ModelSerializer):
         fields = ('id', 'username')
         # fields = '__all__'
         read_only_fields = ('id', 'username', 'password')
+
+# ------------------------------------------------------------------
+class ClubSerializer(serializers.ModelSerializer):
+    master = UserSerializer(required=False)
+    class Meta:
+        model = Club
+        fields = '__all__'
