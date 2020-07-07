@@ -12,6 +12,9 @@ class Category(models.Model):
     name = models.CharField(max_length=50)
     like_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='like_categories')
 
+    def __str__(self):
+        return self.name
+
     @classmethod
     def init_category(cls):
         CATEGORIES=[
@@ -28,8 +31,6 @@ class Category(models.Model):
             cls.objects.create(
                 name=category
             )
-
-
 
 
 class Performance(models.Model):
