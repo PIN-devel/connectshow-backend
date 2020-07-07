@@ -13,11 +13,13 @@ from accounts.models import Club
 # Articles
 @api_view(['GET','POST'])
 def list_or_create(request):
+  ArticlePerPage = 10
   if request.method == 'GET':
     p = request.GET.get('page', 1)
-    articles = Paginator(Article.objects.order_by('-id'), 10)
+    articles = Paginator(Article.objects.order_by('-id'), ArticlePerPage)
     serializer = ArticleListSerializer(articles.page(p), many=True)
     return Response({"status":"OK", "data":serializer.data})
+
   else:
     if request.user.is_authenticated:
       club_id = request.data.get('club_id')

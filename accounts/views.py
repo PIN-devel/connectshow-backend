@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
+from django.core.paginator import Paginator
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -67,18 +68,22 @@ def detail_or_delete_or_update(request, user_id):
 @permission_classes([IsAuthenticated])
 def club_list_or_create(request):
     user = request.user
+    PerPage = 10
     if request.method=='GET':
-        clubs = Club.objects.filter(master=user).order_by('-pk')
-        serializer = ClubSerializer(clubs,many=True)
+        p = request.GET.get('page', 1)
+        clubs = Paginator(Club.objects.filter(master=user).order_by('-pk'),PerPage)
+        serializer = ClubSerializer(clubs.page(p),many=True)
         return Response({"status": "OK", "data": serializer.data})
+    
     elif request.method=='POST':
         club = Club.objects.create(master=request.user)
         ClubMember.objects.create(user_id=user.id,club_id=club.id)
-        ClubMember.save()
         serializer = ClubSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save(master=request.user)
             return Response({"status":"OK","data": serializer.data})
+
+
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def club_detail_or_delete_or_update(request,club_id):
@@ -102,6 +107,8 @@ def club_detail_or_delete_or_update(request,club_id):
             return Response({"status":"OK"})
         else:
             return Response({"status":"FAIL","user_error":"관리자만 삭제할 수 있습니다."},status=status.HTTP_403_FORBIDDEN)
+
+
 @api_view(['POST', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def club_subscribe_or_cancle_or_withdraw(request,club_id):
@@ -118,7 +125,6 @@ def club_subscribe_or_cancle_or_withdraw(request,club_id):
                 return Response({"status":"OK"})
             else:
                 clubmember = ClubMember.objects.create(club_id=club.id,user_id=user.id)
-                clubmember.save()
                 context = {
                     "club": club.id,
                     "user": user.id,
@@ -129,6 +135,8 @@ def club_subscribe_or_cancle_or_withdraw(request,club_id):
             clubmember = ClubMember.objects.filter(club_id=club.id,user_id=user.id)
             clubmember.delete()
             return Response({"status":"OK"})       
+
+
 @api_view(['POST',  'DELETE'])
 @permission_classes([IsAuthenticated])
 def club_accept_or_refuse_or_expel(request,club_id,user_id):
@@ -157,6 +165,8 @@ def club_accept_or_refuse_or_expel(request,club_id,user_id):
             return Response({"status":"OK"})       
         else:
             return Response({"status":"FAIL","user_error":"관리자만 삭제할 수 있습니다."},status=status.HTTP_403_FORBIDDEN)
+
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def club_follow(request,club_id):
