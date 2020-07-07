@@ -86,12 +86,19 @@ def club_list_or_create(request):
 def club_detail_or_delete_or_update(request, club_id):
     club = get_object_or_404(Club, id=club_id)
     if request.method == 'GET':
+        # member
         members = ClubMember.objects.filter(club_id=club.id, is_member=True)
         users_serializer = []
         for member in members:
             users_serializer.append(UserIdentifySerializer(member.user).data)
+        # non_member
+        non_members = ClubMember.objects.filter(club_id=club.id, is_member=False)
+        non_users_serializer = []
+        for member in non_members:
+            non_users_serializer.append(UserIdentifySerializer(member.user).data)
         serializer = ClubSerializer(club)
-        return Response({"status": "OK", "data": {'club_members': users_serializer, 'club_detail': serializer.data}})
+        return Response({"status": "OK", "data": {'club_members': users_serializer, 'club_waiting_members': non_users_serializer, 'club_detail': serializer.data}})
+    
     if request.user.is_authenticated:
         if request.method == 'PUT':
             if request.user == club.master:
