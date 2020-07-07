@@ -10,16 +10,18 @@ from .models import Article, Comment
 from .serializers import ArticleSerializer, ArticleListSerializer, CommentSerializer,CommentListSerializer
 from accounts.models import Club
 
+PerPage = 10
+
 # Articles
 @api_view(['GET','POST'])
 def list_or_create(request):
   ArticlePerPage = 10
   if request.method == 'GET':
     p = request.GET.get('page', 1)
-    articles = Paginator(Article.objects.order_by('-id'), ArticlePerPage)
+    articles = Paginator(Article.objects.order_by('-id'), PerPage)
     serializer = ArticleListSerializer(articles.page(p), many=True)
     return Response({"status":"OK", "data":serializer.data})
-
+  
   else:
     if request.user.is_authenticated:
       club_id = request.data.get('club_id')
@@ -57,7 +59,7 @@ def detail_or_update_or_delete(request, article_id):
           serializer.save()
         return Response({"status":"OK", "data":serializer.data})
       else:
-        return Response({"status":"FAIL","error_msg":"클럽 마스터만 수정할 수 있습니다."},status=status.HTTP_403_FORBIDDEN)
+        return Response({"status":"FAIL", "error_msg":"클럽 마스터만 수정할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
   else:
     return Response({"status":"FAIL", "error_msg":"로그인이 필요한 서비스입니다."}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -65,9 +67,11 @@ def detail_or_update_or_delete(request, article_id):
 @api_view(['GET','POST'])
 def comment_list_or_create(request,article_id):
   if request.method == 'GET':
-    comments = Comment.objects.filter(article_id=article_id)
-    serializer = CommentListSerializer(comments, many=True)
+    p = request.GET.get('page', 1)
+    comments = Paginator(Comment.objects.filter(article_id=article_id), PerPage)
+    serializer = CommentListSerializer(comments.page(p), many=True)
     return Response({"status":"OK", "data":serializer.data})
+  
   else:
     if request.user.is_authenticated:
       article = get_object_or_404(Article, id=article_id)
@@ -88,6 +92,7 @@ def comment_update_or_delete(request, comment_id):
       return Response({"status":"OK"})
     else:
       return Response({"status":"FAIL", "error_msg":"본인 댓글만 삭제할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
+  
   else:
     if request.user == comment.user:
       serializer = CommentSerializer(comment, data=request.data, partial=True)
