@@ -15,7 +15,7 @@ import datetime
 from random import sample
 
 PER_PAGE = 10
-GHOST_ID = 1
+GHOST_ID = 6
 
 @api_view(['GET', 'POST'])
 def list_or_create(request):
@@ -55,7 +55,7 @@ def list_or_create(request):
                     if non_user_names:
                         for non_user_name in non_user_names:
                             username = non_user_name
-                            Cast.objects.create(performance=performance, user_id=5, name=non_user_name)
+                            Cast.objects.create(performance=performance, user_id=GHOST_ID, name=non_user_name)
                             non_user_casts.append({'username':username})
                     return Response({"status": "OK", "data": {'cast':{'user':user_casts,'non_user':non_user_casts},**serializer.data}})
             else:
@@ -104,39 +104,42 @@ def detail_or_delete_or_update(request, performance_id):
                     non_user_casts=[]
                     origin_casts = Cast.objects.filter(performance=performance)
                     if user_ids:
+                        print('user_ids',user_ids)
                         for user_id in user_ids:
                             # x -> o
-                            print(Cast.objects.filter(performance=performance, user_id=user_id).exists())
-                            
-                            if user_id not in list(Cast.objects.filter(performance=performance).values('user_id')):
+                            # 추가로 수정하는 경우                     
+                            if not Cast.objects.filter(performance=performance, user_id=user_id, is_user=1).exists():
                                 username = User.objects.get(id=user_id).username
-                                c = Cast.objects.create(performance=performance, user_id=user_id, is_user=True, name=User.objects.get(id=user_id).username)
-                                print(c, c.name)
+                                c=Cast.objects.create(performance=performance, user_id=user_id, is_user=True, name=User.objects.get(id=user_id).username)
+                                print(c,'fffff')
                                 user_casts.append({'user_id': user_id,'username': username})
-                        print(user_casts)
                     # o -> x
-                    for origin_cast in origin_casts:
-                        if origin_cast.user_id not in user_ids:
-                            origin_cast.delete()
-                        if origin_cast.user_id in user_ids:
-                            # o -> o
-                            username = User.objects.get(id=origin_cast.user_id).username
-                            user_casts.append({'user_id': origin_cast.user_id,'username': username})
+                    # 빼는 경우
+
+                    # for origin_cast in origin_casts:
+                    #     if origin_cast.user_id not in user_ids:
+                    #         origin_cast.delete()
+
+                    #     else:
+                    #         # o -> o
+                    #         # 그대로 존재하는 경우
+                    #         username = User.objects.get(id=origin_cast.user_id).username
+                    #         user_casts.append({'user_id': origin_cast.user_id,'username': username})
                         
-                    if non_user_names:
-                        for non_user_name in non_user_names:
-                            # x -> o
-                            if not Cast.objects.filter(performance=performance, name=non_user_name).exists():
-                                username = non_user_name
-                                Cast.objects.create(performance=performance, user_id=GHOST_ID, name=non_user_name)
-                                non_user_casts.append({'username':username})
-                    # o -> x
-                    for origin_cast in origin_casts:
-                        if origin_cast.name not in non_user_names:
-                            origin_cast.delete()
-                        if origin_cast.name in non_user_names:
-                            # o -> o
-                            non_user_casts.append({'username':origin_cast.name})
+                    # if non_user_names:
+                    #     for non_user_name in non_user_names:
+                    #         # x -> o
+                    #         if not Cast.objects.filter(performance=performance, name=non_user_name).exists():
+                    #             username = non_user_name
+                    #             Cast.objects.create(performance=performance, user_id=GHOST_ID, name=non_user_name)
+                    #             non_user_casts.append({'username':username})
+                    # # o -> x
+                    # for origin_cast in origin_casts:
+                    #     if origin_cast.name not in non_user_names:
+                    #         origin_cast.delete()
+                    #     if origin_cast.name in non_user_names:
+                    #         # o -> o
+                    #         non_user_casts.append({'username':origin_cast.name})
 
                     return Response({"status": "OK", "data": {'cast':{'user':user_casts,'non_user':non_user_casts},**serializer.data}})
                 
