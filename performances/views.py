@@ -6,17 +6,26 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Performance, Review, Category
+from .models import Performance, Review, Category, Cast
 from accounts.models import Club
 from .serializers import PerformanceListSerializer, PerformanceSerializer, ReviewListSerializer, ReviewSerializer
+
+from django.db.models import Q
+import datetime
+from random import sample
 
 PER_PAGE = 10
 
 @api_view(['GET', 'POST'])
 def list_or_create(request):
     if request.method == 'GET':
+        category_ids = request.GET.getlist('category_id')
         p = request.GET.get('page', 1)
-        performances = Paginator(Performance.objects.order_by('-pk'),PER_PAGE)
+        q = Q()
+        for category_id in category_ids:
+            q |= Q(category_id=int(category_id))
+        latest_performances = Performance.objects.filter(q).filter(end_date__gte=datetime.datetime.today().date()).order_by('-start_date')
+        performances = Paginator(latest_performances, PER_PAGE)
         serializer = PerformanceListSerializer(performances.page(p), many=True)
         return Response({"status": "OK", "data": serializer.data})
     else:
@@ -28,11 +37,18 @@ def list_or_create(request):
                 club_id = request.data.get('club_id')
                 category = get_object_or_404(Category, id=category_id)
                 clubs = Club.objects.filter(id=club_id)
+                # casts save
+                user_ids = request.data.get('user_ids')
+                non_user_names = request.data.get('non_user_names')
+
                 if serializer.is_valid(raise_exception=True):
-                    # club_id = request.data.get('club_id')
-                    # serializer.object.clubs.add(user_club[0]) # 첫번째 클럽
-                    # print(serializer.data.id)
-                    serializer.save(clubs=clubs, category=category)
+                    performance = serializer.save(clubs=clubs, category=category)
+                    if user_ids:
+                        for user_id in user_ids:
+                            Cast.objects.create(performance=performance, user_id=user_id, is_user=True)
+                    if non_user_names:
+                        for non_user_name in non_user_names:
+                            Cast.objects.create(performance=performance, user_id=3, name=non_user_name)
                     return Response({"status": "OK", "data": serializer.data})
             else:
                 return Response({"status": "FAIL", "error_msg": "Club의 관리자가 아닙니다."}, status=status.HTTP_403_FORBIDDEN)
@@ -61,18 +77,8 @@ def detail_or_delete_or_update(request, performance_id):
     else:
         if request.user.is_authenticated:
             if request.user.id in masters:
-                # performance.title = request.data.get('title')
-                # performance.start_date = request.data.get('start_date')
-                # performance.end_date = request.data.get('end_date')
-                # performance.running_time = request.data.get('running_time')
-                # performance.time = request.data.get('time')
-                # performance.poster_image = request.data.get('poster_image')
-                # performance.description = request.data.get('description')
-                # performance.url = request.data.get('url')
-                # performance.category = request.data.get('category')
-                # performance.save()
                 serializer = PerformanceSerializer(
-                    performance, data=request.data)
+                    performance, data=request.data, partial=True)
                 if serializer.is_valid(raise_exception=True):
                     serializer.save()
                     return Response({"status": "OK", "data": serializer.data})
@@ -84,7 +90,15 @@ def detail_or_delete_or_update(request, performance_id):
 
 @api_view(['GET'])
 def recommend_performance(request):
-    pass
+    # 회원가입 정보 기반
+    q = Q()
+    for category in request.user.like_categories.all():
+        q |= Q(category_id=category.id)
+    latest_performances = sample(list(Performance.objects.filter(q).filter(end_date__gte=datetime.datetime.today().date())), 1) # 개수 지정
+    # 활동 기반(AI - 추후..)
+    # pass
+    serializer = PerformanceListSerializer(latest_performances, many=True)
+    return Response({"status": "OK", "data": serializer.data})
 
 
 @api_view(['POST'])
@@ -134,10 +148,9 @@ def review_update_or_delete(request, review_id):
             return Response({"status": "FAIL", "error_msg": "본인 Review만 삭제할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
     else:
         if request.user == review.user:
-            review.point = request.data.get('point')
-            review.content = request.data.get('content')
-            review.save()
-            serializer = ReviewSerializer(review)
-            return Response({"status": "OK", "data": serializer.data})
+            serializer = ReviewSerializer(review, data=request.data, partial=True)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response({"status": "OK", "data": serializer.data})
         else:
             return Response({"status": "FAIL", "error_msg": "본인 Review만 수정할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)

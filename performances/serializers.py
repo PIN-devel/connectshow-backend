@@ -19,7 +19,7 @@ class PerformanceListSerializer(serializers.ModelSerializer):
 
 class PerformanceSerializer(serializers.ModelSerializer):
     # clubs = ClubSerializer(read_only=True, many=True)
-    casts = UserIdentifySerializer(many=True)
+    casts = UserIdentifySerializer(required=False, many=True)
     clubs = ClubSerializer(required=False, many=True)
     category = CategorySerializer(required=False)
 
