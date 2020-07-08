@@ -42,14 +42,21 @@ def list_or_create(request):
                 non_user_names = request.data.get('non_user_names')
                 if serializer.is_valid(raise_exception=True):
                     performance = serializer.save(clubs=clubs, category=category)
+                   
+                    user_casts =[]
+                    non_user_casts=[]
+                
                     if user_ids:
                         for user_id in user_ids:
+                            username = User.objects.get(id=user_id).username
                             Cast.objects.create(performance=performance, user_id=user_id, is_user=True, name=User.objects.get(id=user_id).username)
+                            user_casts.append({'user_id':user_id,'username':username})
                     if non_user_names:
                         for non_user_name in non_user_names:
-                            cast = Cast.objects.create(performance=performance, user_id=5, name=non_user_name)
-                            print(cast.name)
-                    return Response({"status": "OK", "data": serializer.data})
+                            username = non_user_name
+                            Cast.objects.create(performance=performance, user_id=5, name=non_user_name)
+                            non_user_casts.append({'username':username})
+                    return Response({"status": "OK", "data": {'cast':{'user':user_casts,'non_user':non_user_casts},**serializer.data}})
             else:
                 return Response({"status": "FAIL", "error_msg": "Club의 관리자가 아닙니다."}, status=status.HTTP_403_FORBIDDEN)
         else:
@@ -63,8 +70,17 @@ def detail_or_delete_or_update(request, performance_id):
     for master in list(performance.clubs.values('master')):
         masters.append(master['master'])
     if request.method == 'GET':
+        casts = Cast.objects.filter(performance=performance)
+        user_casts =[]
+        non_user_casts=[]
+        for cast in casts:
+            if cast.is_user:
+                user_casts.append({'user_id':cast.user_id,'username':cast.name})
+            else:
+                non_user_casts.append({'username':cast.name})
+        
         serializer = PerformanceSerializer(performance)
-        return Response({"status": "OK", "data": serializer.data})
+        return Response({"status": "OK", "data": {'cast':{'user':user_casts,'non_user':non_user_casts},**serializer.data}})
     elif request.method == 'DELETE':
         if request.user.is_authenticated:
             if request.user.id in masters:
@@ -74,7 +90,7 @@ def detail_or_delete_or_update(request, performance_id):
                 return Response({"status": "FAIL", "error_msg": "해당 관리자만 삭제할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
         else:
             return Response({"status": "FAIL", "error_msg": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
-    else:
+    else: # PUT
         if request.user.is_authenticated:
             if request.user.id in masters:
                 serializer = PerformanceSerializer(

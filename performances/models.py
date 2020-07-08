@@ -78,4 +78,4 @@ class Cast(models.Model):
                              null=True,
                              blank=True)
     is_user = models.BooleanField(default=False)
-    name = models.CharField(max_length=50, blank=True)
+    name = models.CharField(max_length=50)
