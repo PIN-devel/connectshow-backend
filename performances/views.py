@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Performance, Review, Category, Cast
-from accounts.models import Club
+from accounts.models import Club, User
 from .serializers import PerformanceListSerializer, PerformanceSerializer, ReviewListSerializer, ReviewSerializer
 
 from django.db.models import Q
@@ -40,15 +40,15 @@ def list_or_create(request):
                 # casts save
                 user_ids = request.data.get('user_ids')
                 non_user_names = request.data.get('non_user_names')
-
                 if serializer.is_valid(raise_exception=True):
                     performance = serializer.save(clubs=clubs, category=category)
                     if user_ids:
                         for user_id in user_ids:
-                            Cast.objects.create(performance=performance, user_id=user_id, is_user=True)
+                            Cast.objects.create(performance=performance, user_id=user_id, is_user=True, name=User.objects.get(id=user_id).username)
                     if non_user_names:
                         for non_user_name in non_user_names:
-                            Cast.objects.create(performance=performance, user_id=3, name=non_user_name)
+                            cast = Cast.objects.create(performance=performance, user_id=5, name=non_user_name)
+                            print(cast.name)
                     return Response({"status": "OK", "data": serializer.data})
             else:
                 return Response({"status": "FAIL", "error_msg": "Club의 관리자가 아닙니다."}, status=status.HTTP_403_FORBIDDEN)

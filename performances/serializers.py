@@ -10,6 +10,10 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = '__all__'
 
+class CastSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cast
+        fields = ['id', 'name', 'user_id', 'performance_id']
 
 class PerformanceListSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,7 +23,8 @@ class PerformanceListSerializer(serializers.ModelSerializer):
 
 class PerformanceSerializer(serializers.ModelSerializer):
     # clubs = ClubSerializer(read_only=True, many=True)
-    casts = UserIdentifySerializer(required=False, many=True)
+    # casts = UserIdentifySerializer(required=False, many=True)
+    casts = CastSerializer(required=False, many=True)
     clubs = ClubSerializer(required=False, many=True)
     category = CategorySerializer(required=False)
 
