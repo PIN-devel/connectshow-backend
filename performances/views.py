@@ -1,3 +1,4 @@
+from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 
 from rest_framework import status
@@ -9,11 +10,14 @@ from .models import Performance, Review, Category
 from accounts.models import Club
 from .serializers import PerformanceListSerializer, PerformanceSerializer, ReviewListSerializer, ReviewSerializer
 
-@api_view(['GET','POST'])
+PER_PAGE = 10
+
+@api_view(['GET', 'POST'])
 def list_or_create(request):
-    if request.method=='GET':
-        performances = Performance.objects.order_by('-pk')
-        serializer = PerformanceListSerializer(performances, many=True)
+    if request.method == 'GET':
+        p = request.GET.get('page', 1)
+        performances = Paginator(Performance.objects.order_by('-pk'),PER_PAGE)
+        serializer = PerformanceListSerializer(performances.page(p), many=True)
         return Response({"status": "OK", "data": serializer.data})
     else:
         if request.user.is_authenticated:
@@ -21,8 +25,8 @@ def list_or_create(request):
             if user_club:
                 serializer = PerformanceSerializer(data=request.data)
                 category_id = request.data.get('category_id')
-                club_id=request.data.get('club_id')
-                category =  get_object_or_404(Category, id=category_id)
+                club_id = request.data.get('club_id')
+                category = get_object_or_404(Category, id=category_id)
                 clubs = Club.objects.filter(id=club_id)
                 if serializer.is_valid(raise_exception=True):
                     # club_id = request.data.get('club_id')
@@ -35,22 +39,23 @@ def list_or_create(request):
         else:
             return Response({"status": "FAIL", "error_msg": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
 
-@api_view(['GET','DELETE','PUT'])
+
+@api_view(['GET', 'DELETE', 'PUT'])
 def detail_or_delete_or_update(request, performance_id):
     performance = get_object_or_404(Performance, id=performance_id)
     masters = []
     for master in list(performance.clubs.values('master')):
         masters.append(master['master'])
-    if request.method=='GET':
+    if request.method == 'GET':
         serializer = PerformanceSerializer(performance)
-        return Response({"status":"OK", "data": serializer.data})
-    elif request.method=='DELETE':
+        return Response({"status": "OK", "data": serializer.data})
+    elif request.method == 'DELETE':
         if request.user.is_authenticated:
             if request.user.id in masters:
                 performance.delete()
-                return Response({"status":"OK"})
+                return Response({"status": "OK"})
             else:
-                return Response({"status":"FAIL", "error_msg":"해당 관리자만 삭제할 수 있습니다."},status=status.HTTP_403_FORBIDDEN)
+                return Response({"status": "FAIL", "error_msg": "해당 관리자만 삭제할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
         else:
             return Response({"status": "FAIL", "error_msg": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
     else:
@@ -66,18 +71,21 @@ def detail_or_delete_or_update(request, performance_id):
                 # performance.url = request.data.get('url')
                 # performance.category = request.data.get('category')
                 # performance.save()
-                serializer = PerformanceSerializer(performance, data=request.data)
+                serializer = PerformanceSerializer(
+                    performance, data=request.data)
                 if serializer.is_valid(raise_exception=True):
                     serializer.save()
-                    return Response({"status":"OK", "data": serializer.data})
+                    return Response({"status": "OK", "data": serializer.data})
             else:
-                return Response({"status":"FAIL", "error_msg":"해당 관리자만 수정할 수 있습니다."},status=status.HTTP_403_FORBIDDEN)
+                return Response({"status": "FAIL", "error_msg": "해당 관리자만 수정할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
         else:
             return Response({"status": "FAIL", "error_msg": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 @api_view(['GET'])
 def recommend_performance(request):
     pass
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -95,27 +103,30 @@ def like_performance(request, performance_id):
     }
     return Response({"status": "OK", "data": context})
 
-@api_view(['GET','POST'])
+
+@api_view(['GET', 'POST'])
 def review_list_or_create(request, performance_id):
-    if request.method=='GET':
-        reviews = Review.objects.filter(performance_id=performance_id)
-        serializer = ReviewListSerializer(reviews, many=True)
+    if request.method == 'GET':
+        p = request.GET.get('page',1)
+        reviews = Paginator(Review.objects.filter(performance_id=performance_id), PER_PAGE)
+        serializer = ReviewListSerializer(reviews.page(p), many=True)
         return Response({"status": "OK", "data": serializer.data})
     else:
         if request.user.is_authenticated:
             serializer = ReviewSerializer(data=request.data)
             if serializer.is_valid(raise_exception=True):
-                serializer.save(user=request.user, performance=get_object_or_404(Performance, id=performance_id))
+                serializer.save(user=request.user, performance=get_object_or_404(
+                    Performance, id=performance_id))
                 return Response({"status": "OK", "data": serializer.data})
         else:
             return Response({"status": "FAIL", "error_msg": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-@api_view(['DELETE','PUT'])
+@api_view(['DELETE', 'PUT'])
 @permission_classes([IsAuthenticated])
 def review_update_or_delete(request, review_id):
     review = get_object_or_404(Review, id=review_id)
-    if request.method=='DELETE':
+    if request.method == 'DELETE':
         if request.user == review.user:
             review.delete()
             return Response({"status": "OK"})
@@ -129,6 +140,4 @@ def review_update_or_delete(request, review_id):
             serializer = ReviewSerializer(review)
             return Response({"status": "OK", "data": serializer.data})
         else:
-            return Response({"status":"FAIL", "error_msg": "본인 Review만 수정할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
-
-
+            return Response({"status": "FAIL", "error_msg": "본인 Review만 수정할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
