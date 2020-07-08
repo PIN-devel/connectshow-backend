@@ -1,12 +1,17 @@
 from rest_framework import serializers
 
-from .models import Performance, Category, Review,Cast
-from accounts.serializers import UserSerializer,UserIdentifySerializer,ClubSerializer
+from .models import Performance, Category, Review, Cast
+from accounts.serializers import UserSerializer
 from accounts.models import Club
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
+        fields = '__all__'
+
+class CastSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cast
         fields = '__all__'
 
 class PerformanceListSerializer(serializers.ModelSerializer):
@@ -20,11 +25,12 @@ class PerformanceSerializer(serializers.ModelSerializer):
     casts = UserIdentifySerializer(many=True)
     clubs = ClubSerializer(required=False, many=True)
     category = CategorySerializer(required=False)
+    casts = CastSerializer(required=False, many=True)
     class Meta:
         model = Performance
         fields = '__all__'
         read_only_fields = ('id', 'clubs', 'created_at', 'updated_at', 'like_users', 'casts', 'avg_rank', 'category')
-
+ 
 class ReviewListSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     performance = PerformanceSerializer()
@@ -39,5 +45,3 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = '__all__'
         read_only_fields = ('id', 'user', 'created_at', 'updated_at')
-
-
