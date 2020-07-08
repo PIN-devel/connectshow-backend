@@ -106,9 +106,9 @@ def detail_or_delete_or_update(request, performance_id):
                     if user_ids:
                         for user_id in user_ids:
                             # x -> o
-                            print(Cast.objects.filter(performance_id=performance.id, user_id=user_id).exists())
+                            print(Cast.objects.filter(performance=performance, user_id=user_id).exists())
                             
-                            if user_id not in list(Cast.objects.filter(performance_id=performance.id).values('user_id')):
+                            if user_id not in list(Cast.objects.filter(performance=performance).values('user_id')):
                                 username = User.objects.get(id=user_id).username
                                 c = Cast.objects.create(performance=performance, user_id=user_id, is_user=True, name=User.objects.get(id=user_id).username)
                                 print(c, c.name)
