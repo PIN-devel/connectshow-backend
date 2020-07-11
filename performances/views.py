@@ -181,7 +181,13 @@ def like_performance(request, performance_id):
     }
     return Response({"status": "OK", "data": context})
 
-
+@api_view(['GET'])
+def club_performance(request, club_id):
+    club = get_object_or_404(Club, id=club_id)
+    performances = Performance.objects.filter(clubs__in=[club])
+    serializer = PerformanceListSerializer(performances, many=True)
+    return Response({"status": "OK", "data": serializer.data})
+    
 @api_view(['GET', 'POST'])
 def review_list_or_create(request, performance_id):
     if request.method == 'GET':

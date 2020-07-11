@@ -7,6 +7,7 @@ urlpatterns = [
     path('<int:performance_id>/', views.detail_or_delete_or_update),
     path('recommendations/', views.recommend_performance),
     path('<int:performance_id>/like/', views.like_performance),
+    path('club/<int:club_id>/', views.club_performance),
 
     # reviews
     path('<int:performance_id>/reviews/', views.review_list_or_create),
