@@ -14,17 +14,17 @@ PER_PAGE = 10
 
 # Articles
 @api_view(['GET', 'POST'])
-def list_or_create(request):
+def list_or_create(request, club_id):
+    club = get_object_or_404(Club, id=club_id)
+    
     if request.method == 'GET':
         p = request.GET.get('page', 1)
-        articles = Paginator(Article.objects.order_by('-id'), PER_PAGE)
+        articles = Paginator(Article.objects.filter(club=club).order_by('-id'), PER_PAGE)
         serializer = ArticleListSerializer(articles.page(p), many=True)
         return Response({"status": "OK", "data": serializer.data})
 
     else:
         if request.user.is_authenticated:
-            club_id = request.data.get('club_id')
-            club = get_object_or_404(Club, id=club_id)
             if request.user == club.master:
                 serializer = ArticleSerializer(data=request.data)
                 if serializer.is_valid(raise_exception=True):
