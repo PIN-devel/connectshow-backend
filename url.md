@@ -21,6 +21,8 @@
 | 클럽가입 수락            | post         | /accounts/clubs/<club_id>/user/<user_id>/ |                                                              |                                                              |
 | 클럽 거절/ 추방          | delete       | /accounts/clubs/<club_id>/user/<user_id>/ |                                                              |                                                              |
 | 클럽 팔로우              | post         | /accounts/clubs/<club_id>/follow/         | token(header)                                                |                                                              |
+| 팔로우체크               | post         | /accounts/clubs/<club_id>/follow/check/   | token(header)                                                |                                                              |
+| 마스터체크               | post         | /accounts/clubs/<club_id>/master/check/   | token(header)                                                |                                                              |
 |                          |              |                                           |                                                              |                                                              |
 | 퍼포먼스 리스트          | get          | /performance/?category=<category_name>    |                                                              |                                                              |
 | 퍼포먼스 생성            | post         | /performances/                            | user_id, club_id,,,,                                         |                                                              |

@@ -10,4 +10,6 @@ urlpatterns = [
     path('clubs/<club_id>/user/<user_id>/',
          views.club_accept_or_refuse_or_expel),
     path('clubs/<club_id>/follow/', views.club_follow),
+    path('clubs/<club_id>/follow/check/', views.club_follow_check),
+    path('clubs/<club_id>/master/check/', views.club_master_check),
 ]

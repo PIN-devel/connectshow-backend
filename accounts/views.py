@@ -68,8 +68,7 @@ def club_list_or_create(request):
     PerPage = 10
     if request.method == 'GET':
         p = request.GET.get('page', 1)
-        clubs = Paginator(Club.objects.filter(
-            master=user).order_by('-pk'), PerPage)
+        clubs = Paginator(Club.objects.order_by('-pk'), PerPage)
         serializer = ClubSerializer(clubs.page(p), many=True)
         return Response({"status": "OK", "data": serializer.data})
 
@@ -198,5 +197,32 @@ def club_follow(request, club_id):
     data = {
         "follow": follow,
         "count": club.follow_users.count()
+    }
+    return Response({"status": "OK", "data": data})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def club_follow_check(request, club_id):
+    club = get_object_or_404(Club, id=club_id)
+    if club.follow_users.filter(pk=request.user.id).exists():
+        follow = True
+    else:
+        follow = False
+    data = {
+        "follow": follow,
+        "count": club.follow_users.count()
+    }
+    return Response({"status": "OK", "data": data})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def club_master_check(request, club_id):
+    club = get_object_or_404(Club, id=club_id)
+    if club.master == request.user:
+        master = True
+    else:
+        master = False
+    data = {
+        "master": master,
     }
     return Response({"status": "OK", "data": data})
