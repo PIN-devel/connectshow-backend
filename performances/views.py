@@ -224,3 +224,34 @@ def review_update_or_delete(request, review_id):
                 return Response({"status": "OK", "data": serializer.data})
         else:
             return Response({"status": "FAIL", "error_msg": "본인 Review만 수정할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
+
+@api_view(['GET','POST','PUT'])
+def category(request):
+    User = get_user_model()
+    user = get_object_or_404(User, id=request.user.id)
+    if request.method == 'GET':
+        categories = user.like_categories.all()
+        result = []
+        for category in categories:
+            result.append(category.name)
+        categorylist = sorted(result)
+        print(categorylist)
+        return Response({"status": "OK","category":categorylist})
+    elif request.method == 'POST':
+        for category_id in request.data:
+            category = get_object_or_404(Category, id=category_id)
+            category.like_users.add(request.user)
+        return Response({"status": "OK"})
+    else:
+        precategories = user.like_categories.all()
+        for category in precategories:
+            categoryone = get_object_or_404(Category, id=category.id)
+            categoryone.like_users.remove(request.user)
+        result = []
+        for category in set(request.data):
+            categoryone = get_object_or_404(Category, id=category)
+            categoryone.like_users.add(request.user)
+            if category not in result:
+                result.append(categoryone.name)
+        categorylist = sorted(result)
+        return Response({"status": "OK","category":categorylist})
