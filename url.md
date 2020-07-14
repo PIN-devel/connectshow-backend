@@ -21,6 +21,8 @@
 | 클럽가입 수락            | post         | /accounts/clubs/<club_id>/user/<user_id>/ |                                                              |                                                              |
 | 클럽 거절/ 추방          | delete       | /accounts/clubs/<club_id>/user/<user_id>/ |                                                              |                                                              |
 | 클럽 팔로우              | post         | /accounts/clubs/<club_id>/follow/         | token(header)                                                |                                                              |
+| 팔로우체크               | post         | /accounts/clubs/<club_id>/follow/check/   | token(header)                                                |                                                              |
+| 마스터체크               | post         | /accounts/clubs/<club_id>/master/check/   | token(header)                                                |                                                              |
 |                          |              |                                           |                                                              |                                                              |
 | 퍼포먼스 리스트          | get          | /performance/?category=<category_name>    |                                                              |                                                              |
 | 퍼포먼스 생성            | post         | /performances/                            | user_id, club_id,,,,                                         |                                                              |
@@ -35,11 +37,11 @@
 | 퍼포먼스 좋아요          | post         | /performances/<performance_id>/like/      |                                                              |                                                              |
 | 클럽에 해당하는 퍼포먼스 | get          | /performances/club/<club_id>/             |                                                              |                                                              |
 |                          |              |                                           |                                                              |                                                              |
-| 아티클 리스트 조회       | get          | /community/                               |                                                              |                                                              |
-| 아티클 생성              | post         | /community/                               | club_id                                                      |                                                              |
-| 아티클 상세 조회         | get          | /community/<article_id>/                  |                                                              |                                                              |
-| 아티클 수정              | put          | /community/<article_id>/                  |                                                              |                                                              |
-| 아티클 삭제              | delete       | /community/<article_id>/                  |                                                              |                                                              |
+| 아티클 리스트 조회       | get          | /community/<club_id>/                     |                                                              |                                                              |
+| 아티클 생성              | post         | /community/<club_id>/                     |                                                              |                                                              |
+| 아티클 상세 조회         | get          | /community/articles/<article_id>/         |                                                              |                                                              |
+| 아티클 수정              | put          | /community/articles/<article_id>/         |                                                              |                                                              |
+| 아티클 삭제              | delete       | /community/articles/<article_id>/         |                                                              |                                                              |
 | 댓글 리스트 조회         | get          | /community/<article_id>/comments/         |                                                              |                                                              |
 | 댓글 생성                | post         | /community/<article_id>/comments/         |                                                              |                                                              |
 | 댓글 수정                | put          | /community/comments/<comments_id>         |                                                              |                                                              |

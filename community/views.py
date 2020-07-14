@@ -10,21 +10,22 @@ from .models import Article, Comment
 from .serializers import ArticleSerializer, ArticleListSerializer, CommentSerializer, CommentListSerializer
 from accounts.models import Club
 
-PER_PAGE = 10
+PER_PAGE = 5
 
 # Articles
 @api_view(['GET', 'POST'])
-def list_or_create(request):
+def list_or_create(request, club_id):
+    club = get_object_or_404(Club, id=club_id)
+    
     if request.method == 'GET':
-        p = request.GET.get('page', 1)
-        articles = Paginator(Article.objects.order_by('-id'), PER_PAGE)
+        p = request.GET.get('_page', 1)
+        articles = Paginator(Article.objects.filter(club=club).order_by('-id'), PER_PAGE)
         serializer = ArticleListSerializer(articles.page(p), many=True)
-        return Response({"status": "OK", "data": serializer.data})
+        articles_num = Article.objects.filter(club=club).count()
+        return Response({"status": "OK", "data": serializer.data, 'articles_num': articles_num})
 
     else:
         if request.user.is_authenticated:
-            club_id = request.data.get('club_id')
-            club = get_object_or_404(Club, id=club_id)
             if request.user == club.master:
                 serializer = ArticleSerializer(data=request.data)
                 if serializer.is_valid(raise_exception=True):
@@ -67,11 +68,12 @@ def detail_or_update_or_delete(request, article_id):
 @api_view(['GET', 'POST'])
 def comment_list_or_create(request, article_id):
     if request.method == 'GET':
-        p = request.GET.get('page', 1)
+        p = request.GET.get('_page', 1)
         comments = Paginator(Comment.objects.filter(
             article_id=article_id), PER_PAGE)
         serializer = CommentListSerializer(comments.page(p), many=True)
-        return Response({"status": "OK", "data": serializer.data})
+        comments_num = Comment.objects.filter(article_id=article_id).count()
+        return Response({"status": "OK", "data": serializer.data, 'comments_num': comments_num})
 
     else:
         if request.user.is_authenticated:
