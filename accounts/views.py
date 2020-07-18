@@ -20,7 +20,6 @@ def identify(request):
 
 # Create your views here.
 @api_view(['GET', 'DELETE', 'PUT'])
-# @permission_classes([IsAuthenticated])
 def detail_or_delete_or_update(request, user_id):
     User = get_user_model()
     user = get_object_or_404(User, id=user_id)
@@ -31,7 +30,7 @@ def detail_or_delete_or_update(request, user_id):
         return Response({"status": "OK", "data": serializer.data})
 
     # 삭제
-    if request.user.isauthenticated:
+    if request.user.is_authenticated:
         
         if request.method == 'DELETE':
             if request.user == user:
@@ -65,7 +64,6 @@ def detail_or_delete_or_update(request, user_id):
 
 
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
 def club_list_or_create(request):
     user = request.user
     PerPage = 10
@@ -76,12 +74,15 @@ def club_list_or_create(request):
         return Response({"status": "OK", "data": serializer.data})
 
     else:  # POST
-        serializer = ClubSerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            club = serializer.save(master=request.user)
-            ClubMember.objects.create(
-                user_id=request.user.id, club_id=club.id, is_member=True)
-            return Response({"status": "OK", "data": serializer.data})
+        if user.is_authenticated:
+            serializer = ClubSerializer(data=request.data)
+            if serializer.is_valid(raise_exception=True):
+                club = serializer.save(master=request.user)
+                ClubMember.objects.create(
+                    user_id=request.user.id, club_id=club.id, is_member=True)
+                return Response({"status": "OK", "data": serializer.data})
+        else:
+            return Response({"status": "FAIL", "error_msg": "로그인이 필요한 서비스 입니다."}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
