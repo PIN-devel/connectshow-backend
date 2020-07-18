@@ -32,17 +32,20 @@ class UserSerializer(serializers.ModelSerializer):
     like_performances = PerformanceListSerializer(many=True)
     clubs = ClubSerializer(many=True)
 
+    performances = PerformanceListSerializer(many=True)
+    follow_clubs = ClubSerializer(many=True)
+
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'profile_image',
-                  'clubs', 'like_categories', 'like_performances')
+                  'clubs', 'like_categories', 'like_performances', 'follow_clubs', 'performances')
         read_only_fields = ('id', 'username')
 
 
 class UserIdentifySerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username')
+        fields = ('id', 'username', 'profile_image')
         read_only_fields = ('id', 'username')
 
 

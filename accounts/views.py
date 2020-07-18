@@ -20,7 +20,7 @@ def identify(request):
 
 # Create your views here.
 @api_view(['GET', 'DELETE', 'PUT'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def detail_or_delete_or_update(request, user_id):
     User = get_user_model()
     user = get_object_or_404(User, id=user_id)
@@ -31,23 +31,26 @@ def detail_or_delete_or_update(request, user_id):
         return Response({"status": "OK", "data": serializer.data})
 
     # 삭제
-    elif request.method == 'DELETE':
-        if request.user == user:
-            request.user.delete()
-            return Response({"status": "OK", **serializer.data})
-        else:
-            return Response({"status": "FAIL", "error_msg": "삭제 권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
+    if request.user.isauthenticated:
+        
+        if request.method == 'DELETE':
+            if request.user == user:
+                request.user.delete()
+                return Response({"status": "OK", **serializer.data})
+            else:
+                return Response({"status": "FAIL", "error_msg": "삭제 권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
 
-    # 수정
+        # 수정
+        else:
+            if request.user == user:
+                serializer = UserSerializer(user, data=request.data, partial=True)
+                if serializer.is_valid(raise_exception=True):
+                    serializer.save()
+                    return Response({"status": "OK", "data": serializer.data})
+            else:
+                return Response({"status": "FAIL", "error_msg": "수정 권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
     else:
-        if request.user == user:
-            serializer = UserSerializer(user, data=request.data, partial=True)
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                return Response({"status": "OK", "data": serializer.data})
-        else:
-            return Response({"status": "FAIL", "error_msg": "수정 권한이 없습니다."}, status=status.HTTP_403_FORBIDDEN)
-
+        return Response({"status": "FAIL", "error_msg": "로그인이 필요한 서비스 입니다."}, status=status.HTTP_401_UNAUTHORIZED)
     # @api_view(['POST'])
     # @permission_classes([IsAuthenticated])
     # def edit(request, user_id):

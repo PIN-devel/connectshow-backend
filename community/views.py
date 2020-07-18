@@ -81,6 +81,8 @@ def comment_list_or_create(request, article_id):
             serializer = CommentSerializer(data=request.data)
             if serializer.is_valid(raise_exception=True):
                 serializer.save(user=request.user, article=article)
+                comment = get_object_or_404(Comment, id=serializer.data['id'])
+                serializer = CommentListSerializer(comment)
                 return Response({"status": "OK", "data": serializer.data})
         else:
             return Response({"status": "FAIL", "error_msg": "로그인이 필요한 서비스입니다."}, status=status.HTTP_401_UNAUTHORIZED)

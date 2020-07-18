@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import Performance, Category, Review, Cast
-from accounts.serializers import UserSerializer, UserIdentifySerializer, ClubSerializer
+from accounts.serializers import UserIdentifySerializer, ClubSerializer
 from accounts.models import Club
 
 
@@ -36,7 +36,7 @@ class PerformanceSerializer(serializers.ModelSerializer):
 
 
 class ReviewListSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
+    user = UserIdentifySerializer()
     performance = PerformanceSerializer()
 
     class Meta:
@@ -45,7 +45,7 @@ class ReviewListSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    user = UserSerializer(required=False)
+    user = UserIdentifySerializer(required=False)
     performance = PerformanceSerializer(required=False)
 
     class Meta:
