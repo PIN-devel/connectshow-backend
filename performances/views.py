@@ -205,7 +205,6 @@ def review_list_or_create(request, performance_id):
         else:
             return Response({"status": "FAIL", "error_msg": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
 
-
 @api_view(['DELETE', 'PUT'])
 @permission_classes([IsAuthenticated])
 def review_update_or_delete(request, review_id):
@@ -255,3 +254,34 @@ def category(request):
                 result.append(categoryone.name)
         categorylist = sorted(result)
         return Response({"status": "OK","category":categorylist})
+
+@api_view(['GET'])
+def calendar(request):
+    counts = {}
+    month = {}
+    date = {}
+    category_id = request.GET.get('category_id')
+    year = request.GET.get('year')
+    month = request.GET.get('month')
+    date = request.GET.get('date')
+
+    # for performance in performances:
+    #     start = performance.start_date
+    #     end = performance.end_date
+
+    # category 구분
+    if category_id:
+        performances = Performance.objects.filter(category_id=category_id)
+        for performance in performances:
+            start = performance.start_date
+            end = performance.end_date
+            print(start)
+            print(end)
+    else:
+        performances = Performance.objects.all()
+    
+    print(performances)
+    print(category_id)
+    print(year)
+    print(month)
+    return Response({"status": "OK", "counts": category_id})

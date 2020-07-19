@@ -12,4 +12,7 @@ urlpatterns = [
     # reviews
     path('<int:performance_id>/reviews/', views.review_list_or_create),
     path('reviews/<int:review_id>/', views.review_update_or_delete),
+
+    # calendar
+    path('calendar/', views.calendar),
 ]
