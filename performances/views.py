@@ -1,3 +1,6 @@
+import json
+from io import StringIO
+
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
@@ -41,7 +44,7 @@ def list_or_create(request):
                 clubs = Club.objects.filter(id=club_id)
                 # casts save
                 user_ids = request.data.get('user_ids')
-                non_user_names = request.data.get('non_user_names')
+                non_user_names = json.load(StringIO(request.data.get('non_user_names')))
                 if serializer.is_valid(raise_exception=True):
                     performance = serializer.save(clubs=clubs, category=category)
                    
