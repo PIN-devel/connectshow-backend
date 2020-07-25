@@ -20,6 +20,13 @@ class PerformanceListSerializer(serializers.ModelSerializer):
         model = Performance
         fields = ('id', 'title', 'poster_image', 'end_date')
 
+class PerformanceCalendarSerializer(serializers.ModelSerializer):
+    clubs = ClubSerializer(required=False, many=True)
+    category = CategorySerializer(required=False)
+
+    class Meta:
+        model = Performance
+        fields = ('id', 'title', 'start_date', 'end_date', 'clubs', 'category')
 
 class PerformanceSerializer(serializers.ModelSerializer):
     # clubs = ClubSerializer(read_only=True, many=True)
