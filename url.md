@@ -1,49 +1,24 @@
 # Solgik Sever Url
 
-| 기능                     | HTTP Methods | Url                                       | Input Parameter                                              | Response                                                     |
-| ------------------------ | ------------ | ----------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 회원가입                 | post         | /rest-auth/signup/                        | username, passward1, passward2 ,email, like_category, profile_image(default) | status, data(user_id ...)                                    |
-| 로그인                   | post         | /rest-auth/login/                         | username, passward                                           | token                                                        |
-| 로그아웃                 | post         | /rest-auth/logout/                        | token(header)                                                | status                                                       |
-| 비밀번호 변경            | post         | /rest-auth/password/change/               | token(header),new_password1, new_password2, old_password     | detail                                                       |
-| 유저 조회                | get          | /accounts/                                | token(header)                                                | data(user_id,username)                                       |
-| 유저 상세 조회           | get          | /accounts/detail/                         | token(header)                                                | data(user_id,username,email,profile image, like_category, follow_club, club) |
-| 회원정보 수정            | put          | /accounts/<user_id>/                      | email, like_category, profile_image(default)                 | status, data(user)                                           |
-| 회원 탈퇴                | delete       | /accounts/<user_id>/                      | token(header)                                                | status                                                       |
-|                          |              |                                           |                                                              |                                                              |
-| 클럽 리스트 조회         | get          | /accounts/clubs/                          |                                                              |                                                              |
-| 클럽 생성                | post         | /accounts/clubs/                          |                                                              |                                                              |
-| 클럽 상세 조회           | get          | /accounts/clubs/<club_id>/                |                                                              |                                                              |
-| 클럽 수정                | put          | /accounts/clubs/<club_id>/                |                                                              |                                                              |
-| 클럽 삭제                | delete       | /accounts/clubs/<club_id>/                |                                                              |                                                              |
-| 클럽 가입 신청/취소      | post         | /accounts/clubs/<club_id>/apply/          | token(header)                                                |                                                              |
-| 클럽 탈퇴                | delete       | /accounts/clubs/<club_id>/apply/          | token(header)                                                |                                                              |
-| 클럽가입 수락            | post         | /accounts/clubs/<club_id>/user/<user_id>/ |                                                              |                                                              |
-| 클럽 거절/ 추방          | delete       | /accounts/clubs/<club_id>/user/<user_id>/ |                                                              |                                                              |
-| 클럽 팔로우              | post         | /accounts/clubs/<club_id>/follow/         | token(header)                                                |                                                              |
-| 팔로우체크               | post         | /accounts/clubs/<club_id>/follow/check/   | token(header)                                                |                                                              |
-| 마스터체크               | post         | /accounts/clubs/<club_id>/master/check/   | token(header)                                                |                                                              |
-|                          |              |                                           |                                                              |                                                              |
-| 퍼포먼스 리스트          | get          | /performance/?category=<category_name>    |                                                              |                                                              |
-| 퍼포먼스 생성            | post         | /performances/                            | user_id, club_id,,,,                                         |                                                              |
-| 퍼포먼스 조회            | get          | /performances/<performance_id>/           |                                                              |                                                              |
-| 퍼포먼스 수정            | put          | /performances/<performance_id>/           |                                                              |                                                              |
-| 퍼포먼스 삭제            | delete       | /performances/<performance_id>/           |                                                              |                                                              |
-| 퍼포먼스 추천            | get          | /performances/recommandations/            |                                                              |                                                              |
-| 리뷰 리스트              | get          | /performances/<performance_id>/reviews/   |                                                              |                                                              |
-| 리뷰 생성                | post         | /performances/<performance_id>/reviews/   |                                                              |                                                              |
-| 리뷰 수정                | put          | /performances/reviews/<review_id>/        |                                                              |                                                              |
-| 리뷰 삭제                | delete       | /performances/reviews/<review_id>/        |                                                              |                                                              |
-| 퍼포먼스 좋아요          | post         | /performances/<performance_id>/like/      |                                                              |                                                              |
-| 클럽에 해당하는 퍼포먼스 | get          | /performances/club/<club_id>/             |                                                              |                                                              |
-|                          |              |                                           |                                                              |                                                              |
-| 아티클 리스트 조회       | get          | /community/<club_id>/                     |                                                              |                                                              |
-| 아티클 생성              | post         | /community/<club_id>/                     |                                                              |                                                              |
-| 아티클 상세 조회         | get          | /community/articles/<article_id>/         |                                                              |                                                              |
-| 아티클 수정              | put          | /community/articles/<article_id>/         |                                                              |                                                              |
-| 아티클 삭제              | delete       | /community/articles/<article_id>/         |                                                              |                                                              |
-| 댓글 리스트 조회         | get          | /community/<article_id>/comments/         |                                                              |                                                              |
-| 댓글 생성                | post         | /community/<article_id>/comments/         |                                                              |                                                              |
-| 댓글 수정                | put          | /community/comments/<comments_id>         |                                                              |                                                              |
-| 댓글 삭제                | delete       | /community/comments/<comments_id>         |                                                              |                                                              |
+| 기능                 | HTTP Methods | Url                                                  | Input Parameter | Response |
+| -------------------- | ------------ | ---------------------------------------------------- | --------------- | -------- |
+| 회원가입             | post         | /rest-auth/signup/                                   |                 |          |
+| 로그인               | post         | /rest-auth/login/                                    |                 |          |
+| 로그아웃             | post         | /rest-auth/logout/                                   |                 |          |
+| 비밀번호 변경        | post         | /rest-auth/password/change/                          |                 |          |
+| 유저 조회            | get          | /accounts/?kw='수미'&order_by='point'&period="month" |                 |          |
+| 유저 상세 조회       | get          | /accounts/<user_id>/                                 |                 |          |
+| 회원정보 수정        | put          | /accounts/<user_id>/                                 |                 |          |
+| 회원 탈퇴            | delete       | /accounts/<user_id>/                                 |                 |          |
+| 비밀번호 찾기        | -            | -                                                    |                 |          |
+|                      |              |                                                      |                 |          |
+| 스트레칭 리스트 조회 | get          | /streching/?category=""                              |                 |          |
+| 스트레칭 생성        | post         | /streching/                                          |                 |          |
+| 스트레칭 상세 조회   | get          | /streching/<streching_id>/                           |                 |          |
+| 스트레칭 수정        | put          | /streching/<streching_id>/                           |                 |          |
+| 스트레칭 삭제        | delete       | /streching/<streching_id>/                           |                 |          |
+|                      |              |                                                      |                 |          |
+| 짝꿍 리스트 조회     | get          | /accounts/friend/                                    |                 |          |
+| 짝꿍 추가/삭제       | post         | /accounts/friend/<user_id>/                          |                 |          |
+
 
