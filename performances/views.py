@@ -236,7 +236,6 @@ def category(request):
         for category in categories:
             result.append(category.name)
         categorylist = sorted(result)
-        print(categorylist)
         return Response({"status": "OK","category":categorylist})
     elif request.method == 'POST':
         for category_id in request.data:
