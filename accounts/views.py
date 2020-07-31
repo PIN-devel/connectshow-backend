@@ -62,7 +62,13 @@ def detail_or_delete_or_update(request, user_id):
     #     else:
     #         return Response({"message": "사용자 본인만 수정 가능합니다."})
 
-
+@api_view(['GET'])
+def club_search(request):
+    user = request.user
+    clubs = Club.objects.order_by('-pk')
+    serializer = ClubSerializer(clubs, many=True)
+    return Response({"status": "OK", "data": serializer.data})
+    
 @api_view(['GET', 'POST'])
 def club_list_or_create(request):
     user = request.user
