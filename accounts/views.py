@@ -74,7 +74,7 @@ def club_list_or_create(request):
     user = request.user
     PerPage = 10
     if request.method == 'GET':
-        p = request.GET.get('page', 1)
+        p = request.GET.get('_page', 1)
         clubs = Paginator(Club.objects.order_by('-pk'), PerPage)
         serializer = ClubSerializer(clubs.page(p), many=True)
         return Response({"status": "OK", "data": serializer.data})
