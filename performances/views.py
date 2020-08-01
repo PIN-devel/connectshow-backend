@@ -222,7 +222,7 @@ def review_update_or_delete(request, review_id):
     if request.method == 'DELETE':
         if request.user == review.user:
             review.delete()
-            if Review.objects.filter(id=review.id).exists():
+            if Review.objects.all().exists():
                 performance = review.performance
                 avg = Review.objects.all().aggregate(Avg('point'))['point__avg']
                 performance.avg_rank=avg
