@@ -211,7 +211,7 @@ def review_list_or_create(request, performance_id):
                 avg = Review.objects.all().aggregate(Avg('point'))['point__avg']
                 performance.avg_rank=avg
                 performance.save()
-                return Response({"status": "OK", "data": serializer.data})
+                return Response({"status": "OK", "data": serializer.data,"avg":avg})
         else:
             return Response({"status": "FAIL", "error_msg": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -222,11 +222,14 @@ def review_update_or_delete(request, review_id):
     if request.method == 'DELETE':
         if request.user == review.user:
             review.delete()
-            performance = review.performance
-            avg = Review.objects.all().aggregate(Avg('point'))['point__avg']
-            performance.avg_rank=avg
-            performance.save()
-            return Response({"status": "OK"})
+            if Review.objects.filter(id=review.id).exists():
+                performance = review.performance
+                avg = Review.objects.all().aggregate(Avg('point'))['point__avg']
+                performance.avg_rank=avg
+                performance.save()
+            else:
+                avg = 0
+            return Response({"status": "OK","avg":avg})
         else:
             return Response({"status": "FAIL", "error_msg": "본인 Review만 삭제할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
     else:
@@ -238,7 +241,7 @@ def review_update_or_delete(request, review_id):
                 avg = Review.objects.all().aggregate(Avg('point'))['point__avg']
                 performance.avg_rank=avg
                 performance.save()
-                return Response({"status": "OK", "data": serializer.data})
+                return Response({"status": "OK", "data": serializer.data,"avg":avg})
         else:
             return Response({"status": "FAIL", "error_msg": "본인 Review만 수정할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
 
