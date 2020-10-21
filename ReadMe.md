@@ -50,4 +50,4 @@ python manage.py runserver
 
 # ERD
 
-![image-20201022001339743](ReadMe.assets/image-20201022001339743.png)
+![image-20201022001339743](readme.assets/image-20201022001339743.png)
