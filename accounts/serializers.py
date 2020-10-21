@@ -17,7 +17,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class PerformanceListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Performance
-        fields = ('id', 'title', 'poster_image')
+        fields = ('id', 'title', 'poster_image', 'end_date')
 # ------------------------------------------------------------------
 
 

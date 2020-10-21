@@ -1,0 +1,66 @@
+[
+    {
+        "model": "accounts.user",
+        "pk": 1,
+        "fields": {
+            "username": "ghost_user",
+            "password": "ghost_user1234!"
+        }
+    },
+    {
+        "model": "performances.category",
+        "pk": 1,
+        "fields": {
+            "name": "음악/콘서트"
+        }
+    },
+    {
+        "model": "performances.category",
+        "pk": 2,
+        "fields": {
+            "name": "뮤지컬/오페라"
+        }
+    },
+    {
+        "model": "performances.category",
+        "pk": 3,
+        "fields": {
+            "name": "연극"
+        }
+    },
+    {
+        "model": "performances.category",
+        "pk": 4,
+        "fields": {
+            "name": "국악"
+        }
+    },
+    {
+        "model": "performances.category",
+        "pk": 5,
+        "fields": {
+            "name": "무용/발레"
+        }
+    },
+    {
+        "model": "performances.category",
+        "pk": 6,
+        "fields": {
+            "name": "아동/가족"
+        }
+    },
+    {
+        "model": "performances.category",
+        "pk": 7,
+        "fields": {
+            "name": "전시"
+        }
+    },
+    {
+        "model": "performances.category",
+        "pk": 8,
+        "fields": {
+            "name": "기타"
+        }
+    }
+]

@@ -1,5 +1,10 @@
+import json
+from io import StringIO
+
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
+from django.db.models import Avg
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -8,11 +13,12 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import Performance, Review, Category, Cast
 from accounts.models import Club, User
-from .serializers import PerformanceListSerializer, PerformanceSerializer, ReviewListSerializer, ReviewSerializer
+from .serializers import PerformanceListSerializer, PerformanceSerializer, ReviewListSerializer, ReviewSerializer, PerformanceCalendarSerializer
 
 from django.db.models import Q
 import datetime
 from random import sample
+import pandas
 
 PER_PAGE = 10
 GHOST_ID = 2
@@ -40,7 +46,7 @@ def list_or_create(request):
                 clubs = Club.objects.filter(id=club_id)
                 # casts save
                 user_ids = request.data.get('user_ids')
-                non_user_names = request.data.get('non_user_names')
+                non_user_names = json.load(StringIO(request.data.get('non_user_names')))
                 if serializer.is_valid(raise_exception=True):
                     performance = serializer.save(clubs=clubs, category=category)
                    
@@ -199,12 +205,15 @@ def review_list_or_create(request, performance_id):
         if request.user.is_authenticated:
             serializer = ReviewSerializer(data=request.data)
             if serializer.is_valid(raise_exception=True):
-                serializer.save(user=request.user, performance=get_object_or_404(
-                    Performance, id=performance_id))
-                return Response({"status": "OK", "data": serializer.data})
+
+                performance=performance=get_object_or_404(Performance, id=performance_id)
+                serializer.save(user=request.user, performance=performance)
+                avg = Review.objects.all().aggregate(Avg('point'))['point__avg']
+                performance.avg_rank=avg
+                performance.save()
+                return Response({"status": "OK", "data": serializer.data,"avg":avg})
         else:
             return Response({"status": "FAIL", "error_msg": "로그인이 필요합니다."}, status=status.HTTP_401_UNAUTHORIZED)
-
 
 @api_view(['DELETE', 'PUT'])
 @permission_classes([IsAuthenticated])
@@ -213,7 +222,14 @@ def review_update_or_delete(request, review_id):
     if request.method == 'DELETE':
         if request.user == review.user:
             review.delete()
-            return Response({"status": "OK"})
+            if Review.objects.all().exists():
+                performance = review.performance
+                avg = Review.objects.all().aggregate(Avg('point'))['point__avg']
+                performance.avg_rank=avg
+                performance.save()
+            else:
+                avg = 0
+            return Response({"status": "OK","avg":avg})
         else:
             return Response({"status": "FAIL", "error_msg": "본인 Review만 삭제할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
     else:
@@ -221,7 +237,11 @@ def review_update_or_delete(request, review_id):
             serializer = ReviewSerializer(review, data=request.data, partial=True)
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
-                return Response({"status": "OK", "data": serializer.data})
+                performance = review.performance
+                avg = Review.objects.all().aggregate(Avg('point'))['point__avg']
+                performance.avg_rank=avg
+                performance.save()
+                return Response({"status": "OK", "data": serializer.data,"avg":avg})
         else:
             return Response({"status": "FAIL", "error_msg": "본인 Review만 수정할 수 있습니다."}, status=status.HTTP_403_FORBIDDEN)
 
@@ -235,7 +255,6 @@ def category(request):
         for category in categories:
             result.append(category.name)
         categorylist = sorted(result)
-        print(categorylist)
         return Response({"status": "OK","category":categorylist})
     elif request.method == 'POST':
         for category_id in request.data:
@@ -255,3 +274,78 @@ def category(request):
                 result.append(categoryone.name)
         categorylist = sorted(result)
         return Response({"status": "OK","category":categorylist})
+
+@api_view(['GET'])
+def calendar(request):
+    performance_list = []
+    month_cnt_list = {}
+    search_date =''  # 찾으려는 날짜 '2020-07-28' 선택할 때
+
+    # get data
+    category_id = request.GET.get('category_id')
+    year = request.GET.get('year')
+    month = request.GET.get('month')
+    date = request.GET.get('date')
+
+    # 예외 처리
+    if not year or not month:
+        return Response({"status": "FAIL", "error_msg": "잘못된 요청입니다."})
+
+    # category 구분
+    if category_id:
+        performances = Performance.objects.filter(category_id=category_id).order_by('start_date')
+    else:
+        performances = Performance.objects.all().order_by('start_date')
+
+    for performance in performances:
+            start = str(performance.start_date)
+            end = str(performance.end_date)
+            if year and month and date:
+                search_date = year + '-' + month + '-' + date
+                flag = get_year_month_date_data(start, end, search_date)
+                if flag:
+                    performance_list.append(performance)
+            if year and month and not date:
+                year_s, month_s, date_s = start.split('-')
+                year_e, month_e, date_e = end.split('-')
+                if year_s == year or year_e == year:
+                    if month_s == month or month_e == month:
+                        performance_list.append(performance)
+                        month_cnt_list = get_year_month_data(start, end, month_cnt_list)
+
+    serializer = PerformanceCalendarSerializer(performance_list, many=True)
+    context = {
+        'performances': serializer.data,
+        'date_count': len(performance_list),
+        'month_count': month_cnt_list,
+    }
+    return Response({"status": "OK", "data": context})
+
+def get_year_month_date_data(start, end, search):
+    start = start.replace("-","")
+    end = end.replace("-","")
+
+    dt_index = pandas.date_range(start=start, end=end)
+    dt_list = dt_index.strftime("%Y-%m-%d").tolist()
+
+    if search in dt_list:
+        return True
+
+    return False
+
+def get_year_month_data(start, end, month_cnt_list):
+
+    start = start.replace("-","")
+    end = end.replace("-","")
+
+    dt_index = pandas.date_range(start=start, end=end)
+    dt_list = dt_index.strftime("%Y-%m-%d").tolist()
+
+    for date in dt_list:
+        if date not in month_cnt_list:
+            month_cnt_list[date] = 1
+        else:
+            month_cnt_list[date] += 1
+
+    return month_cnt_list
+    
